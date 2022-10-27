@@ -1,8 +1,8 @@
 {
     "private": true,
-    "name": "salmon-standard-wallet",
-    "author": "Solana Maintainers <maintainers@solana.foundation>",
-    "repository": "https://github.com/solana-labs/wallet-standard",
+    "name": "salmon-wallet-standard",
+    "author": "Salmon Developers",
+    "repository": "https://github.com/salmonw/salmon-wallet-standard",
     "license": "Apache-2.0",
     "engines": {
         "node": ">=16"
