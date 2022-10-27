@@ -22,26 +22,26 @@ import type {
     SignMessageOutput,
 } from '@wallet-standard/features';
 import bs58 from 'bs58';
-import { GhostWalletAccount } from './account.js';
+import { SalmonWalletAccount } from './account.js';
 import { icon } from './icon.js';
 import type { SolanaChain } from './solana.js';
 import { isSolanaChain, SOLANA_CHAINS } from './solana.js';
 import { bytesEqual } from './util.js';
-import type { Ghost } from './window.js';
+import type { Salmon } from './window.js';
 
-export type GhostFeature = {
-    'ghost:': {
-        ghost: Ghost;
+export type SalmonFeature = {
+    'salmon:': {
+        salmon: Salmon;
     };
 };
 
-export class GhostWallet implements Wallet {
+export class SalmonWallet implements Wallet {
     readonly #listeners: { [E in EventsNames]?: EventsListeners[E][] } = {};
     readonly #version = '1.0.0' as const;
-    readonly #name = 'Ghost' as const;
+    readonly #name = 'Salmon' as const;
     readonly #icon = icon;
-    #account: GhostWalletAccount | null = null;
-    readonly #ghost: Ghost;
+    #account: SalmonWalletAccount | null = null;
+    readonly #salmon: Salmon;
 
     get version() {
         return this.#version;
@@ -65,7 +65,7 @@ export class GhostWallet implements Wallet {
         SolanaSignAndSendTransactionFeature &
         SolanaSignTransactionFeature &
         SignMessageFeature &
-        GhostFeature {
+        SalmonFeature {
         return {
             'standard:connect': {
                 version: '1.0.0',
@@ -93,8 +93,8 @@ export class GhostWallet implements Wallet {
                 version: '1.0.0',
                 signMessage: this.#signMessage,
             },
-            'ghost:': {
-                ghost: this.#ghost,
+            'salmon:': {
+                salmon: this.#salmon,
             },
         };
     }
@@ -103,16 +103,16 @@ export class GhostWallet implements Wallet {
         return this.#account ? [this.#account] : [];
     }
 
-    constructor(ghost: Ghost) {
-        if (new.target === GhostWallet) {
+    constructor(salmon: Salmon) {
+        if (new.target === SalmonWallet) {
             Object.freeze(this);
         }
 
-        this.#ghost = ghost;
+        this.#salmon = salmon;
 
-        ghost.on('connect', this.#connected, this);
-        ghost.on('disconnect', this.#disconnected, this);
-        ghost.on('accountChanged', this.#reconnected, this);
+        salmon.on('connect', this.#connected, this);
+        salmon.on('disconnect', this.#disconnected, this);
+        salmon.on('accountChanged', this.#reconnected, this);
 
         this.#connected();
     }
@@ -132,14 +132,14 @@ export class GhostWallet implements Wallet {
     }
 
     #connected = () => {
-        const address = this.#ghost.publicKey?.toBase58();
+        const address = this.#salmon.publicKey?.toBase58();
         if (address) {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            const publicKey = this.#ghost.publicKey!.toBytes();
+            const publicKey = this.#salmon.publicKey!.toBytes();
 
             const account = this.#account;
             if (!account || account.address !== address || !bytesEqual(account.publicKey, publicKey)) {
-                this.#account = new GhostWalletAccount({ address, publicKey });
+                this.#account = new SalmonWalletAccount({ address, publicKey });
                 this.#emit('change', { accounts: this.accounts });
             }
         }
@@ -153,7 +153,7 @@ export class GhostWallet implements Wallet {
     };
 
     #reconnected = () => {
-        if (this.#ghost.publicKey) {
+        if (this.#salmon.publicKey) {
             this.#connected();
         } else {
             this.#disconnected();
@@ -162,7 +162,7 @@ export class GhostWallet implements Wallet {
 
     #connect: ConnectMethod = async ({ silent } = {}) => {
         if (!this.#account) {
-            await this.#ghost.connect(silent ? { onlyIfTrusted: true } : undefined);
+            await this.#salmon.connect(silent ? { onlyIfTrusted: true } : undefined);
         }
 
         this.#connected();
@@ -171,7 +171,7 @@ export class GhostWallet implements Wallet {
     };
 
     #disconnect: DisconnectMethod = async () => {
-        await this.#ghost.disconnect();
+        await this.#salmon.disconnect();
     };
 
     #signAndSendTransaction: SolanaSignAndSendTransactionMethod = async (...inputs) => {
@@ -186,7 +186,7 @@ export class GhostWallet implements Wallet {
             if (account !== this.#account) throw new Error('invalid account');
             if (!isSolanaChain(chain)) throw new Error('invalid chain');
 
-            const { signature } = await this.#ghost.signAndSendTransaction(
+            const { signature } = await this.#salmon.signAndSendTransaction(
                 VersionedTransaction.deserialize(transaction),
                 {
                     preflightCommitment,
@@ -217,7 +217,7 @@ export class GhostWallet implements Wallet {
             if (account !== this.#account) throw new Error('invalid account');
             if (chain && !isSolanaChain(chain)) throw new Error('invalid chain');
 
-            const signedTransaction = await this.#ghost.signTransaction(VersionedTransaction.deserialize(transaction));
+            const signedTransaction = await this.#salmon.signTransaction(VersionedTransaction.deserialize(transaction));
 
             outputs.push({ signedTransaction: signedTransaction.serialize() });
         } else if (inputs.length > 1) {
@@ -236,7 +236,7 @@ export class GhostWallet implements Wallet {
 
             const transactions = inputs.map(({ transaction }) => Transaction.from(transaction));
 
-            const signedTransactions = await this.#ghost.signAllTransactions(transactions);
+            const signedTransactions = await this.#salmon.signAllTransactions(transactions);
 
             outputs.push(
                 ...signedTransactions.map((signedTransaction) => ({ signedTransaction: signedTransaction.serialize() }))
@@ -256,7 +256,7 @@ export class GhostWallet implements Wallet {
             const { message, account } = inputs[0]!;
             if (account !== this.#account) throw new Error('invalid account');
 
-            const { signature } = await this.#ghost.signMessage(message);
+            const { signature } = await this.#salmon.signMessage(message);
 
             outputs.push({ signedMessage: message, signature });
         } else if (inputs.length > 1) {

@@ -1,7 +1,7 @@
 import { registerWallet } from './register.js';
-import { GhostWallet } from './wallet.js';
-import type { Ghost } from './window.js';
+import { SalmonWallet } from './wallet.js';
+import type { Salmon } from './window.js';
 
-export function initialize(ghost: Ghost): void {
-    registerWallet(new GhostWallet(ghost));
+export function initialize(salmon: Salmon): void {
+    registerWallet(new SalmonWallet(salmon));
 }
