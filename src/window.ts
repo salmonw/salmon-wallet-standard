@@ -17,9 +17,10 @@ export interface Salmon extends SalmonEventEmitter {
     disconnect(): Promise<void>;
     signAndSendTransaction<T extends Transaction | VersionedTransaction>(
         transaction: T,
+        network?: string,
         options?: SendOptions
     ): Promise<{ signature: TransactionSignature }>;
-    signTransaction<T extends Transaction | VersionedTransaction>(transaction: T): Promise<T>;
-    signAllTransactions<T extends Transaction | VersionedTransaction>(transactions: T[]): Promise<T[]>;
+    signTransaction<T extends Transaction | VersionedTransaction>(transaction: T, network?: string): Promise<T>;
+    signAllTransactions<T extends Transaction | VersionedTransaction>(transactions: T[], network?: string): Promise<T[]>;
     signMessage(message: Uint8Array): Promise<{ signature: Uint8Array }>;
 }
