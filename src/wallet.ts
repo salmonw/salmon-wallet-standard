@@ -172,6 +172,8 @@ export class SalmonWallet implements Wallet {
 
     #disconnect: DisconnectMethod = async () => {
         await this.#salmon.disconnect();
+
+        this.#disconnected();
     };
 
     #signAndSendTransaction: SolanaSignAndSendTransactionMethod = async (...inputs) => {
