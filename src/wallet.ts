@@ -24,8 +24,8 @@ import type {
 import bs58 from 'bs58';
 import { SalmonWalletAccount } from './account.js';
 import { icon } from './icon.js';
-import type { SolanaChain } from './solana.js';
-import { isSolanaChain, SOLANA_CHAINS } from './solana.js';
+import { SolanaChain } from './solana.js';
+import { getNetworkForChain, isSolanaChain, SOLANA_CHAINS } from './solana.js';
 import { bytesEqual } from './util.js';
 import type { Salmon } from './window.js';
 
@@ -185,9 +185,11 @@ export class SalmonWallet implements Wallet {
             const { minContextSlot, preflightCommitment, skipPreflight, maxRetries } = options || {};
             if (account !== this.#account) throw new Error('invalid account');
             if (!isSolanaChain(chain)) throw new Error('invalid chain');
+            const network = chain ? getNetworkForChain(chain) : undefined;
 
             const { signature } = await this.#salmon.signAndSendTransaction(
                 VersionedTransaction.deserialize(transaction),
+                network,
                 {
                     preflightCommitment,
                     minContextSlot,
@@ -216,8 +218,9 @@ export class SalmonWallet implements Wallet {
             const { transaction, account, chain } = inputs[0]!;
             if (account !== this.#account) throw new Error('invalid account');
             if (chain && !isSolanaChain(chain)) throw new Error('invalid chain');
+            const network = chain ? getNetworkForChain(chain) : undefined;
 
-            const signedTransaction = await this.#salmon.signTransaction(VersionedTransaction.deserialize(transaction));
+            const signedTransaction = await this.#salmon.signTransaction(VersionedTransaction.deserialize(transaction), network);
 
             outputs.push({ signedTransaction: signedTransaction.serialize() });
         } else if (inputs.length > 1) {
@@ -233,10 +236,11 @@ export class SalmonWallet implements Wallet {
                     }
                 }
             }
+            const network = chain ? getNetworkForChain(chain) : undefined;
 
             const transactions = inputs.map(({ transaction }) => Transaction.from(transaction));
 
-            const signedTransactions = await this.#salmon.signAllTransactions(transactions);
+            const signedTransactions = await this.#salmon.signAllTransactions(transactions, network);
 
             outputs.push(
                 ...signedTransactions.map((signedTransaction) => ({ signedTransaction: signedTransaction.serialize() }))
