@@ -6,7 +6,7 @@ import type {
     SolanaSignTransactionMethod,
     SolanaSignTransactionOutput,
 } from '@solana/wallet-standard-features';
-import { Transaction, VersionedTransaction } from '@solana/web3.js';
+import { VersionedTransaction } from '@solana/web3.js';
 import type { Wallet } from '@wallet-standard/base';
 import type {
     ConnectFeature,
@@ -240,7 +240,7 @@ export class SalmonWallet implements Wallet {
             }
             const network = chain ? getNetworkForChain(chain) : undefined;
 
-            const transactions = inputs.map(({ transaction }) => Transaction.from(transaction));
+            const transactions = inputs.map(({ transaction }) => VersionedTransaction.deserialize(transaction));
 
             const signedTransactions = await this.#salmon.signAllTransactions(transactions, network);
 
