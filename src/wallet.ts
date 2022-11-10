@@ -2,6 +2,9 @@ import type {
     SolanaSignAndSendTransactionFeature,
     SolanaSignAndSendTransactionMethod,
     SolanaSignAndSendTransactionOutput,
+    SolanaSignMessageFeature,
+    SolanaSignMessageMethod,
+    SolanaSignMessageOutput,
     SolanaSignTransactionFeature,
     SolanaSignTransactionMethod,
     SolanaSignTransactionOutput,
@@ -17,14 +20,11 @@ import type {
     EventsListeners,
     EventsNames,
     EventsOnMethod,
-    SignMessageFeature,
-    SignMessageMethod,
-    SignMessageOutput,
 } from '@wallet-standard/features';
 import bs58 from 'bs58';
 import { SalmonWalletAccount } from './account.js';
 import { icon } from './icon.js';
-import { SolanaChain } from './solana.js';
+import type { SolanaChain } from './solana.js';
 import { getNetworkForChain, isSolanaChain, SOLANA_CHAINS } from './solana.js';
 import { bytesEqual } from './util.js';
 import type { Salmon } from './window.js';
@@ -64,7 +64,7 @@ export class SalmonWallet implements Wallet {
         EventsFeature &
         SolanaSignAndSendTransactionFeature &
         SolanaSignTransactionFeature &
-        SignMessageFeature &
+        SolanaSignMessageFeature &
         SalmonFeature {
         return {
             'standard:connect': {
@@ -89,7 +89,7 @@ export class SalmonWallet implements Wallet {
                 supportedTransactionVersions: ['legacy', 0],
                 signTransaction: this.#signTransaction,
             },
-            'standard:signMessage': {
+            'solana:signMessage': {
                 version: '1.0.0',
                 signMessage: this.#signMessage,
             },
@@ -252,10 +252,10 @@ export class SalmonWallet implements Wallet {
         return outputs;
     };
 
-    #signMessage: SignMessageMethod = async (...inputs) => {
+    #signMessage: SolanaSignMessageMethod = async (...inputs) => {
         if (!this.#account) throw new Error('not connected');
 
-        const outputs: SignMessageOutput[] = [];
+        const outputs: SolanaSignMessageOutput[] = [];
 
         if (inputs.length === 1) {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
